@@ -130,7 +130,7 @@
                 .attr("cx", d => x(d[X_KEY]))
                 .attr("cy", d => y(d[Y_KEY]))
                 .attr("r", 3.5)
-                .attr("fill", "#1f4fd8")
+                .attr("fill", "#b4472a")
                 .attr("fill-opacity", 0.4);
 
             svg.append("text")
