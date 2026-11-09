@@ -1,0 +1,152 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Kayla | Exploration</title>
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <div id="header" class="header">
+        <a href="./index.html" class="container clickable" id="account-container">
+            <div id="name-container">Kayla</div>
+        </a>
+        <div class="container" id="title-container">
+            <h2>Computer Science + Business</h2>
+        </div>
+        <div class="container" id="pages-container">
+            <a class="pages-btn clickable" href="./index.html">
+                Home
+            </a>
+            <a class="pages-btn clickable" href="./exploration.html">
+                Exploration
+            </a>
+            <a class="pages-btn clickable" href="./index.html#contact">
+                Contact
+            </a>
+        </div>
+    </div>
+
+    <div class="container body-container">
+        <div class="container content-container">
+            <div class="container content-title">
+                <h2>Sleep and Chronic Disease Across Massachusetts</h2>
+            </div>
+            <div class="container content-body stack">
+                <div class="text-block">
+                    <p>
+                        Short sleep is associated with obesity, diabetes, hypertension, heart disease,
+                        stroke, anxiety, and depression, and past studies suggest this burden is
+                        geographically uneven. Neighboring communities can differ sharply in income, age,
+                        and access to care. This project asks a simple question: across Massachusetts, do
+                        census tracts where more adults sleep less than seven hours a night also have
+                        higher rates of chronic disease? If they do, the overlap could point public health
+                        efforts toward the communities where poor sleep and chronic illness appear
+                        together. Looking at the data tract by tract, rather than county by county, lets
+                        us see differences that larger averages can hide.
+                    </p>
+                    <p>
+                        We use the CDC's PLACES: Census Tract Data, 2025 release, which gives model-based
+                        estimates of 40 health measures for each census tract. Filtering to Massachusetts
+                        leaves 1,597 tracts. Each measure is reported as a crude prevalence, the estimated
+                        percentage of adults, so our focus is the percentage of adults sleeping under
+                        seven hours compared against the following chronic conditions:
+                    </p>
+                    <ul>
+                        <li>Diabetes</li>
+                        <li>Coronary heart disease</li>
+                        <li>Stroke</li>
+                        <li>COPD</li>
+                        <li>Asthma</li>
+                        <li>High blood pressure</li>
+                        <li>Obesity</li>
+                        <li>Arthritis</li>
+                    </ul>
+                    <p>
+                        The map below comes from the CDC and shows adult short sleep by U.S. county in
+                        2020. In that model, Suffolk County's estimate is 32.9%, with a range of 31.8% to
+                        34.1%. Our project uses the newer 2025 data and goes below the county level to
+                        individual neighborhoods. The scatterplot after it shows one condition, diabetes,
+                        against short sleep, with each dot representing one tract. Because these are
+                        modeled estimates rather than direct survey counts, the patterns are best read as
+                        community-level trends, not diagnoses.
+                    </p>
+                </div>
+
+                <img src="images/sleep-map.png" alt="CDC map of the percentage of adults sleeping under 7 hours by U.S. county, 2020" class="map-img">
+
+                <div id="chart"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="footer" class="footer">
+        <div>
+            Last updated November 2026
+        </div>
+    </div>
+
+    <script>
+        const DATA_FILE = "data/ma_places.csv";
+        const X_KEY = "SLEEP_CrudePrev";
+        const Y_KEY = "DIABETES_CrudePrev";
+
+        const width = 760, height = 460;
+        const margin = { top: 20, right: 20, bottom: 55, left: 60 };
+
+        const svg = d3.select("#chart").append("svg")
+            .attr("viewBox", `0 0 ${width} ${height}`)
+            .attr("role", "img")
+            .attr("aria-label", "Scatterplot of short sleep versus diabetes across Massachusetts census tracts");
+
+        d3.csv(DATA_FILE, d3.autoType).then(raw => {
+            const rows = raw.filter(d => Number.isFinite(d[X_KEY]) && Number.isFinite(d[Y_KEY]));
+
+            const x = d3.scaleLinear()
+                .domain(d3.extent(rows, d => d[X_KEY])).nice()
+                .range([margin.left, width - margin.right]);
+            const y = d3.scaleLinear()
+                .domain(d3.extent(rows, d => d[Y_KEY])).nice()
+                .range([height - margin.bottom, margin.top]);
+
+            svg.append("g")
+                .attr("transform", `translate(0,${height - margin.bottom})`)
+                .call(d3.axisBottom(x));
+            svg.append("g")
+                .attr("transform", `translate(${margin.left},0)`)
+                .call(d3.axisLeft(y));
+
+            svg.selectAll("circle")
+                .data(rows)
+                .join("circle")
+                .attr("cx", d => x(d[X_KEY]))
+                .attr("cy", d => y(d[Y_KEY]))
+                .attr("r", 3.5)
+                .attr("fill", "#1f4fd8")
+                .attr("fill-opacity", 0.4);
+
+            svg.append("text")
+                .attr("x", (margin.left + width - margin.right) / 2)
+                .attr("y", height - 12)
+                .attr("text-anchor", "middle")
+                .attr("font-size", 13)
+                .attr("fill", "currentColor")
+                .text("Adults sleeping under 7 hours (%)");
+
+            svg.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("x", -(margin.top + height - margin.bottom) / 2)
+                .attr("y", 16)
+                .attr("text-anchor", "middle")
+                .attr("font-size", 13)
+                .attr("fill", "currentColor")
+                .text("Adults with diabetes (%)");
+        }).catch(err => console.error("Could not load " + DATA_FILE, err));
+    </script>
+</body>
+</html>
